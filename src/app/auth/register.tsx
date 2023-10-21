@@ -10,8 +10,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { auth } from "../../lib/firebase";
-
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -26,28 +25,42 @@ const Register = () => {
 		PlastoText: require("../../assets/fonts/PlastoTrial-ExtLtExp.otf"),
 	});
 
-	const handleRegister = () => {
+	const handleRegister = async () => {
 		setLoading(true);
-		if (name === "" || email === "" || password === "") {
-			setError("Please fill all the fields");
-			setLoading(false);
-			return;
-		}
-		createUserWithEmailAndPassword(auth, email, password)
-			.then((userCredential) => {
-				const user = userCredential.user;
-				console.log(user);
-			})
-			.then(() => {
+		try {
+			if (name === "" || email === "" || password === "") {
+				setError("Please fill all the fields");
 				setLoading(false);
-				// setTimeout(() => {
-				// 	router.replace("auth/login");
-				// }, 1200);
-			})
-			.catch((error) => {
-				if (error.code === "auth/email-already-in-use")
-					setError("Email already in use");
+				return;
+			}
+
+			const userCredential = await createUserWithEmailAndPassword(
+				auth,
+				email,
+				password
+			);
+			const user = userCredential.user;
+
+			await updateProfile(user, {
+				displayName: name,
 			});
+
+			setLoading(false);
+			setTimeout(() => {
+				router.replace("auth/login");
+			}, 1200);
+		} catch (error: any) {
+			setLoading(false);
+			if (error.code === "auth/email-already-in-use") {
+				setError("Email already in use");
+			} else if (error.code === "auth/invalid-email") {
+				setError("Invalid email");
+			} else if (error.code === "auth/weak-password") {
+				setError("Password must be at least 6 characters");
+			} else {
+				setError("An error occured");
+			}
+		}
 	};
 
 	const onLayoutRootView = useCallback(async () => {
@@ -55,6 +68,10 @@ const Register = () => {
 			await SplashScreen.hideAsync();
 		}
 	}, [fontsLoaded, fontError]);
+
+	if (auth.currentUser) {
+		router.replace("chat/layout");
+	}
 
 	useEffect(() => {
 		onLayoutRootView();

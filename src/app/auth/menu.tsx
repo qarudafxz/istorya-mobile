@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Text, View, Image } from "react-native";
 import { Link } from "expo-router";
+import { router } from "expo-router";
+import { auth } from "../../lib/firebase";
 
 //@ts-ignore
 import logo from "../../assets/images/logo.png";
@@ -27,6 +29,10 @@ const Menu = () => {
 	useEffect(() => {
 		onLayoutRootView();
 	}, [onLayoutRootView]);
+
+	if (auth.currentUser) {
+		router.replace("chat/layout");
+	}
 
 	if (!fontsLoaded && !fontError) {
 		return null;

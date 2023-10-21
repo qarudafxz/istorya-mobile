@@ -1,11 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, Image, TextInput, Button } from "react-native";
+import { router } from "expo-router";
 import { auth } from "../../lib/firebase";
-import {
-	GoogleAuthProvider,
-	getAuth,
-	signInWithEmailAndPassword,
-} from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 
@@ -27,8 +24,8 @@ const login = () => {
 
 	const handleLogin = () => {
 		signInWithEmailAndPassword(auth, email, password)
-			.then((userCredential) => {
-				const user = userCredential.user;
+			.then(() => {
+				router.replace("chat/layout");
 			})
 			.catch((error) => {
 				if (
@@ -53,6 +50,11 @@ const login = () => {
 
 	if (!fontsLoaded && !fontError) {
 		return null;
+	}
+
+	//if the user is already logged in redirect to chat layout
+	if (auth.currentUser) {
+		router.replace("chat/layout");
 	}
 	return (
 		<View className='w-full h-screen flex items-center py-24'>
