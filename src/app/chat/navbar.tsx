@@ -1,5 +1,5 @@
 import { Link } from "expo-router";
-import { View, Pressable } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
 import {
 	MaterialCommunityIcons,
@@ -30,7 +30,7 @@ const navbar = () => {
 				/>
 			),
 			label: "New Chat",
-			link: "chat/new-chat",
+			link: "chat/message",
 		},
 		{
 			icon: (
@@ -63,13 +63,13 @@ const navbar = () => {
 					{item.icon}
 				</Link>
 			))}
-			<Pressable onPress={handleLogout}>
+			<TouchableOpacity onPress={handleLogout}>
 				<MaterialIcons
 					name='logout'
 					size={24}
 					color='white'
 				/>
-			</Pressable>
+			</TouchableOpacity>
 		</View>
 	);
 };

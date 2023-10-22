@@ -3,6 +3,7 @@ import { View, Text } from "react-native";
 import { Link, useNavigation } from "expo-router";
 import { auth } from "../../lib/firebase";
 import Chats from "./chats";
+import Message from "./message";
 import Login from "../auth/login";
 import Navbar from "./navbar";
 

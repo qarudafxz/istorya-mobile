@@ -11,6 +11,7 @@ import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { auth } from "../../lib/firebase";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { getDatabase, ref, set } from "firebase/database";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,40 +26,55 @@ const Register = () => {
 		PlastoText: require("../../assets/fonts/PlastoTrial-ExtLtExp.otf"),
 	});
 
+	const db = getDatabase();
+
 	const handleRegister = async () => {
 		setLoading(true);
+		let errorMessage = "";
 		try {
 			if (name === "" || email === "" || password === "") {
-				setError("Please fill all the fields");
-				setLoading(false);
-				return;
-			}
-
-			const userCredential = await createUserWithEmailAndPassword(
-				auth,
-				email,
-				password
-			);
-			const user = userCredential.user;
-
-			await updateProfile(user, {
-				displayName: name,
-			});
-
-			setLoading(false);
-			setTimeout(() => {
-				router.replace("auth/login");
-			}, 1200);
-		} catch (error: any) {
-			setLoading(false);
-			if (error.code === "auth/email-already-in-use") {
-				setError("Email already in use");
-			} else if (error.code === "auth/invalid-email") {
-				setError("Invalid email");
-			} else if (error.code === "auth/weak-password") {
-				setError("Password must be at least 6 characters");
+				errorMessage = "Please fill all the fields";
 			} else {
-				setError("An error occured");
+				const userCredential = await createUserWithEmailAndPassword(
+					auth,
+					email,
+					password
+				);
+				const user = userCredential.user;
+
+				const userRef = ref(db, `users/${user.uid}`);
+
+				const newUserInfo = {
+					name: name,
+					email: email,
+					user_id: user.uid,
+					friends: [],
+				};
+
+				await set(userRef, newUserInfo);
+
+				await updateProfile(user, {
+					displayName: name,
+				});
+
+				setTimeout(() => {
+					router.replace("auth/login");
+				}, 1200);
+			}
+		} catch (error: any) {
+			if (error.code === "auth/email-already-in-use") {
+				errorMessage = "Email already in use";
+			} else if (error.code === "auth/invalid-email") {
+				errorMessage = "Invalid email";
+			} else if (error.code === "auth/weak-password") {
+				errorMessage = "Password must be at least 6 characters";
+			} else {
+				errorMessage = "An error occurred";
+			}
+		} finally {
+			setLoading(false);
+			if (errorMessage) {
+				setError(errorMessage);
 			}
 		}
 	};
